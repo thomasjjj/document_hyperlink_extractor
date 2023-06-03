@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from docx import Document
 from PyPDF2 import PdfReader
+import PyPDF2
 
 class DocLinkExtractor:
     def __init__(self):
@@ -30,18 +31,17 @@ class DocLinkExtractor:
             messagebox.showerror("Error", "Unsupported file type. Please select a PDF or Word document.")
 
     def _extract_pdf_links(self, file_path):
-        pdf_file = PdfReader(file_path)
+        pdf_file = PyPDF2.PdfReader(file_path)
         links = []
         for page_num in range(len(pdf_file.pages)):
             page = pdf_file.pages[page_num]
-            content = page.extract_text()
-            links.extend(re.findall(self.url_pattern, content))
             if '/Annots' in page:
-                for annotation in page['/Annots']:
-                    uri = annotation.getObject().get('/A').get('/URI')
+                annotations = page['/Annots']
+                for annotation in annotations:
+                    uri = annotation.get_object().get('/A').get('/URI')
                     if uri:
                         links.append(uri)
-        self._display_links(links)
+        self._display_links(links)  # call to _display_links instead of _show_links
 
     def _extract_docx_links(self, file_path):
         doc = Document(file_path)
